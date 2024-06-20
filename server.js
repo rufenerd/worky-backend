@@ -152,14 +152,3 @@ const sendText = (message) => {
         })
         .catch(error => console.error('Error sending message:', error));
 };
-
-function getTextFilePath() {
-    const filename = 'lastText.json';
-    return path.join(__dirname, "data", filename);
-}
-
-function getTimesheetFilePath() {
-    const currentDate = moment().tz('America/Los_Angeles');
-    const filename = currentDate.format('YYYYMMDD') + '_timesheet.json';
-    return path.join(__dirname, "data", filename);
-}
