@@ -39,6 +39,7 @@ app.post('/punch', async (req, res) => {
         );
         res.send(result.rows);
     } catch (error) {
+        console.error(error)
         res.status(500).send('Error storing punch in database');
     }
 });
