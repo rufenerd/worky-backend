@@ -94,57 +94,46 @@ const isNightOrWeekend = () => {
     return isNight || isWeekend;
 }
 
-const maybeText = () => {
+
+const maybeText = async () => {
     if (isNightOrWeekend()) {
-        return
+        return;
     }
-    const timesheetFilePath = getTimesheetFilePath();
-    fs.readFile(timesheetFilePath, 'utf8', (err, data) => {
-        if (err) {
-            if (err.code === 'ENOENT') {
-                return
-            } else {
-                console.error(err)
+
+    try {
+        const punchesRes = await pool.query('SELECT * FROM punches ORDER BY epochMillis ASC');
+        const punches = punchesRes.rows;
+
+        if (!punches.length) {
+            return;
+        }
+
+        const lastPunch = punches[punches.length - 1];
+
+        const lastTextRes = await pool.query('SELECT * FROM last_text ORDER BY epochMillis DESC LIMIT 1');
+        const lastTextTime = lastTextRes.rows.length ? lastTextRes.rows[0].epochmillis : null;
+
+        if (lastTextTime && lastTextTime > lastPunch.epochmillis) {
+            return;
+        }
+
+        const inDuration = calculateTotalInDuration(punches);
+
+        if (lastPunch.isin) {
+            if (inDuration > MAX_IN_DURATION) {
+                sendText("Ok, wrap it up.");
+            }
+        } else {
+            if (inDuration < MAX_IN_DURATION && !isLunchBreak && Date.now() - lastPunch.epochmillis > MAX_OUT_DURATION) {
+                sendText("Where you at?");
             }
         }
-        try {
-            const punches = JSON.parse(data);
-            const lastPunch = punches[punches.length - 1]
 
-            if (!lastPunch) {
-                return
-            }
-
-            fs.readFile(getTextFilePath(), 'utf8', (err, lastTextTime) => {
-                if (err) {
-                    if (err.code !== 'ENOENT') {
-                        console.error(err)
-                        return
-                    }
-                } else {
-                    if (lastTextTime > lastPunch.epochMillis) {
-                        return
-                    }
-                }
-
-
-                const inDuration = calculateTotalInDuration(punches)
-
-                if (lastPunch.isIn) {
-                    if (inDuration > MAX_IN_DURATION) {
-                        sendText("Ok, wrap it up.")
-                    }
-                } else {
-                    if (inDuration < MAX_IN_DURATION && !isLunchBreak && Date.now() - lastPunch.epochMillis > MAX_OUT_DURATION) {
-                        sendText("Where you at?")
-                    }
-                }
-            })
-        } catch (parseErr) {
-            console.error(parseErr)
-        }
-    });
-}
+        pool.query('INSERT INTO last_text (epochMillis) VALUES ($1)', [Date.now()]);
+    } catch (error) {
+        console.error('Error querying the database:', error);
+    }
+};
 setInterval(maybeText, 60000);
 
 
