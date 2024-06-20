@@ -109,6 +109,7 @@ const maybeText = async () => {
         const punches = punchesRes.rows;
 
         if (!punches.length) {
+            console.error("no punches")
             return;
         }
 
@@ -118,17 +119,22 @@ const maybeText = async () => {
         const lastTextTime = lastTextRes.rows.length ? lastTextRes.rows[0].epochmillis : null;
 
         if (lastTextTime && lastTextTime > lastPunch.epochmillis) {
+            console.log("already sent text", lastTextTime, lastPunch.epochmillis)
             return;
         }
 
         const inDuration = calculateTotalInDurationForToday(punches);
 
         if (lastPunch.isin) {
+            console.log("IN", inDuration)
             if (inDuration > process.env.MAX_IN_DURATION) {
+                console.log("should text wrap it up")
                 sendText("Ok, wrap it up.");
             }
         } else {
+            console.log("OUT", inDuration)
             if (inDuration < process.env.MAX_IN_DURATION && !isLunchBreak() && Date.now() - lastPunch.epochmillis > process.env.MAX_OUT_DURATION) {
+                console.log("should text where at")
                 sendText("Where you at?");
             }
         }
