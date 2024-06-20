@@ -128,8 +128,6 @@ const maybeText = async () => {
                 sendText("Where you at?");
             }
         }
-
-        pool.query('INSERT INTO last_text (epochMillis) VALUES ($1)', [Date.now()]);
     } catch (error) {
         console.error('Error querying the database:', error);
     }
@@ -139,14 +137,6 @@ setInterval(maybeText, 60000);
 
 const sendText = (message) => {
     console.log("sending text: " + message);
-
-    fs.writeFile(getTextFilePath(), JSON.stringify(Date.now()), (err) => {
-        if (err) {
-            console.error(err)
-            return
-        }
-    });
-
     const client = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
     client.messages
@@ -155,7 +145,11 @@ const sendText = (message) => {
             from: '+18556530788',
             to: process.env.PHONE_NUMBER
         })
-        .then(message => console.log(message.sid))
+        .then(message => {
+            const now = Date.now()
+            console.log(message.sid, now)
+            pool.query('INSERT INTO last_text (epochMillis) VALUES ($1)', [now]);
+        })
         .catch(error => console.error('Error sending message:', error));
 };
 
