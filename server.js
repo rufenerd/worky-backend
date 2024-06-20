@@ -25,6 +25,7 @@ app.get('/punches', async (req, res) => {
         const result = await pool.query('SELECT * FROM punches ORDER BY epochMillis ASC');
         res.send(result.rows);
     } catch (error) {
+        console.error(error)
         res.status(500).send('Error retrieving punches from database');
     }
 });
