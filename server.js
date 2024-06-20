@@ -2,6 +2,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
 const moment = require('moment')
+require('moment-timezone');
 require('dotenv').config();
 
 const pool = new Pool({
