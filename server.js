@@ -5,6 +5,8 @@ const moment = require('moment')
 require('moment-timezone');
 require('dotenv').config();
 const path = require('path');
+const fs = require('fs');
+
 
 const pool = new Pool({
     user: process.env.DATABASE_USER,
