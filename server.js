@@ -57,18 +57,18 @@ const calculateTotalInDurationForToday = (punches) => {
     const endOfToday = moment.tz("America/Los_Angeles").endOf('day');
 
     const todayPunches = punches.filter(punch => {
-        const punchTime = moment.tz(punch.epochMillis, "America/Los_Angeles");
+        const punchTime = moment.tz(punch.epochmillis, "America/Los_Angeles");
         return punchTime.isBetween(startOfToday, endOfToday, null, '[]');
     });
 
     for (let i = 0; i < todayPunches.length; i++) {
         const punch = todayPunches[i];
 
-        if (punch.isIn) {
-            lastInTime = punch.epochMillis;
+        if (punch.isin) {
+            lastInTime = punch.epochmillis;
         } else {
             if (lastInTime !== null) {
-                totalInDuration += punch.epochMillis - lastInTime;
+                totalInDuration += punch.epochmillis - lastInTime;
                 lastInTime = null;
             }
         }
