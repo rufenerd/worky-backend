@@ -120,11 +120,11 @@ const maybeText = async () => {
         const inDuration = calculateTotalInDuration(punches);
 
         if (lastPunch.isin) {
-            if (inDuration > MAX_IN_DURATION) {
+            if (inDuration > process.env.MAX_IN_DURATION) {
                 sendText("Ok, wrap it up.");
             }
         } else {
-            if (inDuration < MAX_IN_DURATION && !isLunchBreak && Date.now() - lastPunch.epochmillis > MAX_OUT_DURATION) {
+            if (inDuration < process.env.MAX_IN_DURATION && !isLunchBreak && Date.now() - lastPunch.epochmillis > process.env.MAX_OUT_DURATION) {
                 sendText("Where you at?");
             }
         }
