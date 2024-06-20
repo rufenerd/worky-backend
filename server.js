@@ -1,12 +1,10 @@
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
-const moment = require('moment')
-require('moment-timezone');
+const moment = require('moment-timezone');
 require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
-
 
 const pool = new Pool({
     user: process.env.DATABASE_USER,
@@ -51,13 +49,20 @@ app.listen(3000, '0.0.0.0', () => {
     console.log('Server is running on port 3000');
 });
 
-
-const calculateTotalInDuration = (punches) => {
+const calculateTotalInDurationForToday = (punches) => {
     let totalInDuration = 0;
     let lastInTime = null;
 
-    for (let i = 0; i < punches.length; i++) {
-        const punch = punches[i];
+    const startOfToday = moment.tz("America/Los_Angeles").startOf('day');
+    const endOfToday = moment.tz("America/Los_Angeles").endOf('day');
+
+    const todayPunches = punches.filter(punch => {
+        const punchTime = moment.tz(punch.epochMillis, "America/Los_Angeles");
+        return punchTime.isBetween(startOfToday, endOfToday, null, '[]');
+    });
+
+    for (let i = 0; i < todayPunches.length; i++) {
+        const punch = todayPunches[i];
 
         if (punch.isIn) {
             lastInTime = punch.epochMillis;
@@ -77,23 +82,22 @@ const calculateTotalInDuration = (punches) => {
 }
 
 const isLunchBreak = () => {
-    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
-    return (now.getHours() === 11 && now.getMinutes() >= 50) ||
-        (now.getHours() === 12) ||
-        (now.getHours() === 13 && now.getMinutes() <= 30);
+    const now = moment.tz("America/Los_Angeles");
+    return (now.hour() === 11 && now.minute() >= 50) ||
+        (now.hour() === 12) ||
+        (now.hour() === 13 && now.minute() <= 30);
 }
 
 const isNightOrWeekend = () => {
-    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
-    const day = now.getDay(); // 0 = Sunday, 6 = Saturday
-    const hour = now.getHours();
+    const now = moment.tz("America/Los_Angeles");
+    const day = now.day(); // 0 = Sunday, 6 = Saturday
+    const hour = now.hour();
 
     const isWeekend = (day === 0 || day === 6);
     const isNight = (hour >= 19 || hour < 9);
 
     return isNight || isWeekend;
 }
-
 
 const maybeText = async () => {
     if (isNightOrWeekend()) {
@@ -117,14 +121,14 @@ const maybeText = async () => {
             return;
         }
 
-        const inDuration = calculateTotalInDuration(punches);
+        const inDuration = calculateTotalInDurationForToday(punches);
 
         if (lastPunch.isin) {
             if (inDuration > process.env.MAX_IN_DURATION) {
                 sendText("Ok, wrap it up.");
             }
         } else {
-            if (inDuration < process.env.MAX_IN_DURATION && !isLunchBreak && Date.now() - lastPunch.epochmillis > process.env.MAX_OUT_DURATION) {
+            if (inDuration < process.env.MAX_IN_DURATION && !isLunchBreak() && Date.now() - lastPunch.epochmillis > process.env.MAX_OUT_DURATION) {
                 sendText("Where you at?");
             }
         }
@@ -132,8 +136,8 @@ const maybeText = async () => {
         console.error('Error querying the database:', error);
     }
 };
-setInterval(maybeText, 60000);
 
+setInterval(maybeText, 60000);
 
 const sendText = (message) => {
     console.log("sending text: " + message);
