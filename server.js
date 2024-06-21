@@ -145,9 +145,12 @@ const sendText = (message) => {
         })
         .catch(error => console.error('Error sending message:', error));
 };
-
-// Schedule a job to clear the data at midnight Pacific Time
-schedule.scheduleJob('0 0 * * *', () => {
+let rule = new schedule.RecurrenceRule();
+rule.tz = 'America/Los_Angeles';
+rule.second = 0;
+rule.minute = 0;
+rule.hour = 0;
+schedule.scheduleJob(rule, () => {
     const now = moment.tz("America/Los_Angeles");
     console.log(`Clearing data at midnight Pacific Time: ${now.format()}`);
     punches = [];
