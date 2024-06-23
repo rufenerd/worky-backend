@@ -35,7 +35,6 @@ app.post('/punch', (req, res) => {
 });
 
 app.post('/reset', (req, res) => {
-    const { isIn, epochMillis } = req.body;
     try {
         punches = []
         res.send("ok");
