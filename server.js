@@ -87,6 +87,16 @@ const isNightOrWeekend = () => {
     return isNight || isWeekend;
 };
 
+const afterHours = () => {
+    if (isNightOrWeekend()) {
+        return true;
+    }
+    const now = moment.tz("America/Los_Angeles");
+    const hour = now.hour();
+    const minute = now.minute()
+    return (hour > 17) || (hour == 17 && minute > 15)
+}
+
 const maybeText = async () => {
     if (isNightOrWeekend()) {
         return;
@@ -116,7 +126,7 @@ const maybeText = async () => {
             }
         } else {
             console.log("OUT", inDuration);
-            if (inDuration < process.env.MAX_IN_DURATION && !isLunchBreak() && Date.now() - lastPunch.epochMillis > process.env.MAX_OUT_DURATION) {
+            if (!afterHours() && !isLunchBreak() && Date.now() - lastPunch.epochMillis > process.env.MAX_OUT_DURATION) {
                 console.log("should text where at");
                 sendText("Where you at?");
             }
