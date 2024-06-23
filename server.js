@@ -34,6 +34,17 @@ app.post('/punch', (req, res) => {
     }
 });
 
+app.post('/reset', (req, res) => {
+    const { isIn, epochMillis } = req.body;
+    try {
+        punches = []
+        res.send("ok");
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error resetting');
+    }
+});
+
 app.listen(3000, '0.0.0.0', () => {
     console.log('Server is running on port 3000');
 });
