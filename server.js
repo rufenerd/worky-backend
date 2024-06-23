@@ -26,6 +26,7 @@ app.post('/punch', (req, res) => {
     try {
         const newPunch = { isIn, epochMillis };
         punches.push(newPunch);
+        console.log("PUNCH: ", newPunch)
         res.send([newPunch]);
     } catch (error) {
         console.error(error);
