@@ -64,7 +64,9 @@ const calculateTotalInDurationForToday = () => {
         const punch = todayPunches[i];
 
         if (punch.isIn) {
-            lastInTime = punch.epochMillis;
+            if (lastInTime === null) {
+                lastInTime = punch.epochMillis;
+            }
         } else {
             if (lastInTime !== null) {
                 totalInDuration += punch.epochMillis - lastInTime;
